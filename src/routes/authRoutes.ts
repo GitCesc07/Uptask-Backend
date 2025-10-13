@@ -45,8 +45,7 @@ router.post(
 
 router.post(
   "/request-code",
-  body("email")
-  .isEmail().withMessage("Email no válido"),  
+  body("email").isEmail().withMessage("Email no válido"),
   handleInputErrors,
   AuthController.requestConfirmationCode
 );
@@ -82,8 +81,44 @@ router.post(
   AuthController.updatePasswordWithToken
 );
 
-router.get("/user",
+router.get("/user", authenticate, AuthController.user);
+
+// * Profile
+router.put(
+  "/profile",
   authenticate,
-  AuthController.user
-)
+  body("name").notEmpty().withMessage("Debes de agregar el nombre"),
+  body("email").isEmail().withMessage("E-mail no valido"),
+  handleInputErrors,
+  AuthController.updateProfile
+);
+
+router.post(
+  "/update-password",
+  authenticate,
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("El password debe de tener al menos 8 caracteres"),
+  body("password_confirmation") // validando password desde un custom
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Los password no son iguales");
+      }
+      return true;
+    }),
+  body("current_password")
+    .notEmpty()
+    .withMessage("El password actual no puede estar vacio"),
+  handleInputErrors,
+  AuthController.updateCurrentUserPassword
+);
+
+router.post(
+  "/check-password",
+  authenticate,
+  body("password").notEmpty().withMessage("El password no puede estar vacio"),
+  handleInputErrors,
+  AuthController.checkPassword
+);
+
 export default router;
