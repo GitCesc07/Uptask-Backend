@@ -15,9 +15,6 @@ const router = Router();
 // * Valida que el usuario este atenticado, y se dispara en todos los rouetes
 router.use(authenticate);
 
-// * Routes for Task
-router.param("projectId", projectExists)
-
 router.post(
   "/",
   body("projectName")
@@ -44,9 +41,12 @@ router.get(
   ProjectController.getProjectById
 );
 
+// * Routes for Task
+router.param("projectId", projectExists)
+
 router.put(
-  "/:id",
-  param("id").isMongoId().withMessage("Id no válido"),
+  "/:projectId",
+  param("projectId").isMongoId().withMessage("Id no válido"),
   body("projectName")
     .notEmpty()
     .withMessage("Debes de agregar el nombre del proyecto..."),
@@ -57,13 +57,15 @@ router.put(
     .notEmpty()
     .withMessage("Debes de agregar una breve descripción al proyecto..."),
   handleInputErrors,
+  taskAuthorizationToProject,
   ProjectController.updateProject
 );
 
 router.delete(
-  "/:id",
-  param("id").isMongoId().withMessage("Id no válido"),
+  "/:projectId",
+  param("projectId").isMongoId().withMessage("Id no válido"),
   handleInputErrors,
+  taskAuthorizationToProject,
   ProjectController.deleteProject
 );
 
